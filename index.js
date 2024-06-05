@@ -5,17 +5,11 @@ require("dotenv").config();
 const cors = require('cors');
 
 const PORT = process.env.PORT || 3000;
-
-const corsOptions = {
-    origin: 'http://localhost:5173', // Reemplaza con tu dominio
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-    allowedHeaders: ['Content-Type', 'Authorization'],
-};
-
-app.use(cors(corsOptions));
+app.use(express.json())
+app.use(cors());
 
 dbConnection()
-app.use(express.json())
+
 
 
 app.use('/users', require('./routes/users'));
