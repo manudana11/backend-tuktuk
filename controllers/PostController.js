@@ -113,7 +113,7 @@ const PostController = {
         })
         .populate({
           path: "userId",
-          select: "userName name"
+          select: "userName name profilePic"
         });
       res.send(post);
     } catch (error) {
