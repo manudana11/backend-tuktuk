@@ -3,7 +3,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 require("dotenv").config();
 const { JWT_SECRET} = process.env;
-const API_URL = process.env.API_URL || "https://backend-tuktuk.onrender.com"
+const API_URL = process.env.API_URL || "http://localhost:5173"
 const { transporter } = require("../config/nodemailer.js");
 
 const UserController = {
