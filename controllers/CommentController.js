@@ -19,7 +19,7 @@ const CommentController = {
             };
             const createComment = await Comment.create(comment);
             await Post.findByIdAndUpdate(req.params._id, { $push: { commentsIds: createComment._id } })
-            await User.findByIdAndUpdate(req.user._id, { $push: { comments: createComment._id } })
+            await User.findByIdAndUpdate(req.user._id, { $push: { commentsIds: createComment._id } })
             res.status(201).send({ message: `${req.user.name} created a comment successfully.`, createComment })
           } catch (error) {
             console.error(error);
@@ -39,7 +39,7 @@ const CommentController = {
         try {
             const comment = await Comment.findByIdAndDelete(req.params._id)
             await Post.findByIdAndUpdate(comment.postId, { $pull: { commentsIds: req.params._id } })
-            await User.findByIdAndUpdate(req.user._id, { $pull: { comments: req.params._id } })
+            await User.findByIdAndUpdate(req.user._id, { $pull: { commentsIds: req.params._id } })
             res.send({ message: 'Comment deleted', comment })
           } catch (error) {
             console.error(error)

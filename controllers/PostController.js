@@ -14,7 +14,7 @@ const PostController = {
       console.log(res.post)
       await User.findByIdAndUpdate(
         req.user._id,
-        { $push: { posts: post._id } },
+        { $push: { postsIds: post._id } },
         { new: true }
       );
       res.status(201).send({ message: `${req.user.name} created post successfully.`, post })
@@ -63,7 +63,7 @@ const PostController = {
       const post = await Post.findByIdAndDelete(req.params._id);
       await User.findByIdAndUpdate(
         req.user._id,
-        { $pull: { posts: post._id } },
+        { $pull: { postsIds: post._id } },
         { new: true }
       );
       const commentsIds = post.commentsIds.map(comment => comment._id);
@@ -82,7 +82,19 @@ const PostController = {
   },
   async getById(req, res) {
     try {
-      const post = await Post.findById(req.params._id);
+      const post = await Post.findById(req.params._id)
+      .populate({
+        path: "commentsIds",
+        populate: {
+          path: "userId",
+          select: "userName name"
+        },
+        select: "bodyText likes responses"
+      })
+      .populate({
+        path: "userId",
+        select: "userName name profilePic"
+      });
       res.send(post);
     } catch (error) {
       console.error(error);
@@ -122,7 +134,7 @@ const PostController = {
   },
   async like(req, res) {
     try {
-      const likeExist = await Post.findOne({ _id: req.params._id, likes: req.user._id });
+      const likeExist = await Post.findOne({ _id: req.params._id, likes: req.user._id })
       if (likeExist) {
         return res.status(400).send({ message: "You alrready like this post" });
       }
@@ -130,7 +142,18 @@ const PostController = {
         req.params._id,
         { $push: { likes: req.user._id } },
         { new: true }
-      );
+      ).populate({
+        path: "commentsIds",
+        populate: {
+          path: "userId",
+          select: "userName name"
+        },
+        select: "bodyText likes responses"
+      })
+      .populate({
+        path: "userId",
+        select: "userName name profilePic"
+      });
       await User.findByIdAndUpdate(
         req.user._id,
         { $push: { likes: req.params._id } },
@@ -152,7 +175,18 @@ const PostController = {
         req.params._id,
         { $pull: { likes: req.user._id } },
         { new: true }
-      );
+      ).populate({
+        path: "commentsIds",
+        populate: {
+          path: "userId",
+          select: "userName name"
+        },
+        select: "bodyText likes responses"
+      })
+      .populate({
+        path: "userId",
+        select: "userName name profilePic"
+      });
       await User.findByIdAndUpdate(
         req.user._id,
         { $pull: { likes: req.params._id } },
