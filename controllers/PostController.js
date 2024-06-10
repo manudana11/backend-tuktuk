@@ -134,7 +134,19 @@ const PostController = {
   },
   async like(req, res) {
     try {
-      const likeExist = await Post.findOne({ _id: req.params._id, likes: req.user._id });
+      const likeExist = await Post.findOne({ _id: req.params._id, likes: req.user._id })
+      .populate({
+        path: "commentsIds",
+        populate: {
+          path: "userId",
+          select: "userName name"
+        },
+        select: "bodyText likes responses"
+      })
+      .populate({
+        path: "userId",
+        select: "userName name profilePic"
+      });
       if (likeExist) {
         return res.status(400).send({ message: "You alrready like this post" });
       }
@@ -156,7 +168,19 @@ const PostController = {
   },
   async dislike(req, res) {
     try {
-      const likeExist = await Post.findOne({ _id: req.params._id, likes: req.user._id });
+      const likeExist = await Post.findOne({ _id: req.params._id, likes: req.user._id })
+      .populate({
+        path: "commentsIds",
+        populate: {
+          path: "userId",
+          select: "userName name"
+        },
+        select: "bodyText likes responses"
+      })
+      .populate({
+        path: "userId",
+        select: "userName name profilePic"
+      });
       if (!likeExist) {
         return res.status(400).send({ message: "You have not like this post" });
       };
