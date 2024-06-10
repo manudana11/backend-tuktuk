@@ -14,7 +14,7 @@ const PostController = {
       console.log(res.post)
       await User.findByIdAndUpdate(
         req.user._id,
-        { $push: { posts: post._id } },
+        { $push: { postsIds: post._id } },
         { new: true }
       );
       res.status(201).send({ message: `${req.user.name} created post successfully.`, post })
@@ -63,7 +63,7 @@ const PostController = {
       const post = await Post.findByIdAndDelete(req.params._id);
       await User.findByIdAndUpdate(
         req.user._id,
-        { $pull: { posts: post._id } },
+        { $pull: { postsIds: post._id } },
         { new: true }
       );
       const commentsIds = post.commentsIds.map(comment => comment._id);
