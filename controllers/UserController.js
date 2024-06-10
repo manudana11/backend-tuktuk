@@ -2,7 +2,7 @@ const User = require("../models/User");
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 require("dotenv").config();
-const { JWT_SECRET} = process.env;
+const { JWT_SECRET } = process.env;
 const API_URL = process.env.API_URL || "http://localhost:5173"
 const { transporter } = require("../config/nodemailer.js");
 
@@ -64,7 +64,7 @@ const UserController = {
     async userData(req, res) {
         try {
             const userData = await User.findById(req.user._id).populate({ path: "followers", select: "userName" })
-            .populate ("posts").populate ({path: "following", select: "userName"})
+                .populate("posts").populate({ path: "following", select: "userName" })
             res.send({ message: 'Your information:', userData })
         } catch (error) {
             console.error(error)
@@ -74,7 +74,37 @@ const UserController = {
     async getById(req, res) {
         try {
             const user = await User.findById(req.params._id)
-            res.send({ message: 'user:', user});
+                .populate({
+                    path: 'postsIds',
+                    populate: [
+                        {
+                            path: 'commentsIds',
+                            populate: {
+                                path: 'userId',
+                                select: 'userName name profilePic'
+                            },
+                            select: 'bodyText likes responses'
+                        },
+                        {
+                            path: 'userId',
+                            select: 'userName name profilePic'
+                        }
+                    ],
+                    select: 'imgpost caption userId taggedpeople likes commentsIds location createdAt updatedAt'
+                })
+                .populate({
+                    path: 'comments',
+                    populate: {
+                        path: 'postId',
+                        select: 'imgpost caption userId taggedpeople likes commentsIds location'
+                    },
+                    select: 'bodyText likes responses createdAt updatedAt'
+                })
+                .populate({
+                    path: 'followers following',
+                    select: 'userName name profilePic'
+                });
+            res.send({ message: 'user:', user });
         } catch (error) {
             console.error(error);
         }
@@ -86,7 +116,7 @@ const UserController = {
             }
             const name = new RegExp(req.query.name, "i");
             const user = await User.find({ name });
-            res.send({ message: 'user:', user});
+            res.send({ message: 'user:', user });
         } catch (error) {
             console.error(error);
         }
@@ -110,7 +140,7 @@ const UserController = {
             if (user.tokens.length > 4) user.tokens.shift();
             user.tokens.push(token);
             await user.save();
-            res.send({ message: 'Welcome ' + user.name, token ,user});
+            res.send({ message: 'Welcome ' + user.name, token, user });
         } catch (error) {
             console.error(error);
             res.status(500).send(error)
@@ -127,6 +157,19 @@ const UserController = {
             res.status(500).send({
                 message: "There has been a problem during the disconnection, please try again!",
             });
+        }
+    },
+    async logged(req, res){
+        try {
+            const user = await User.findOne({email: req.user.email,})
+            .populate('comments', 'text')
+            .populate('postsIds', 'text image')
+            res.send(user)
+        } catch (error) {
+            console.error(error);
+            res.status(500).send({
+                message: 'There has been a problem getting the user'
+            })
         }
     },
     async update(req, res) {
@@ -170,7 +213,7 @@ const UserController = {
                 { $push: { following: userFollowed } },
                 { new: true }
             );
-            res.send({ message: "You successfully followed ", follow});
+            res.send({ message: "You successfully followed ", follow });
         } catch (error) {
             console.error(error);
             res.status(500).send({ message: "There was a problem when you followed the user" });
@@ -195,7 +238,7 @@ const UserController = {
                 { $pull: { following: userUnfollowed } },
                 { new: true }
             );
-            res.send({ message: "You successfully unfollowed ",unfollow});
+            res.send({ message: "You successfully unfollowed ", unfollow });
         } catch (error) {
             console.error(error);
             res.status(500).send({ message: "There was a problem when you unfollowed the user" });
@@ -206,7 +249,7 @@ const UserController = {
             const recoverToken = jwt.sign({ email: req.params.email }, JWT_SECRET, {
                 expiresIn: "48h",
             });
-            const url = API_URL+"/users/resetPassword/" + recoverToken;
+            const url = API_URL + "/users/resetPassword/" + recoverToken;
             await transporter.sendMail({
                 to: req.params.email,
                 subject: "Recuperar contraseña",
@@ -249,15 +292,15 @@ const UserController = {
     },
     async delete(req, res) {
         try {
-          const post = await User.findByIdAndDelete(req.user._id);
-          // Comments
-          // Posts
-          res.send({ message: "Deleted user with all his posts and comments", post });
+            const post = await User.findByIdAndDelete(req.user._id);
+            // Comments
+            // Posts
+            res.send({ message: "Deleted user with all his posts and comments", post });
         } catch (error) {
-          console.error(error);
-          res.status(500).send({ message: "There was a problem trying to remove the post" });
+            console.error(error);
+            res.status(500).send({ message: "There was a problem trying to remove the post" });
         }
-      },
+    },
 }
 
 module.exports = UserController;

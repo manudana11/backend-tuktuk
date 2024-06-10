@@ -14,6 +14,7 @@ router.put('/follow/:_id', authentication, UserController.follow)
 router.put('/unfollow/:_id', authentication, UserController.unfollow)
 router.post('/login',UserController.login)
 router.delete('/logout',authentication, UserController.logout)
+router.get('/logged', authentication, UserController.logged)
 router.get("/recoverPassword/:email", UserController.recoverPassword)
 router.put("/resetPassword/:recoverToken", UserController.resetPassword)
 router.put("/confirm/:email", UserController.confirm);
