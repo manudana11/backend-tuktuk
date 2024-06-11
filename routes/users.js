@@ -17,7 +17,7 @@ router.delete('/logout',authentication, UserController.logout)
 router.get('/logged', authentication, UserController.logged)
 router.get("/recoverPassword/:email", UserController.recoverPassword)
 router.put("/resetPassword/:recoverToken", UserController.resetPassword)
-router.put("/confirm/:email", UserController.confirm);
+router.get("/confirm/:email", UserController.confirm);
 
 
 module.exports = router;
