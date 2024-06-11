@@ -162,8 +162,36 @@ const UserController = {
     async logged(req, res){
         try {
             const user = await User.findOne({email: req.user.email,})
-            .populate('comments', 'text')
-            .populate('postsIds', 'text image')
+            .populate({
+                path: 'postsIds',
+                populate: [
+                    {
+                        path: 'commentsIds',
+                        populate: {
+                            path: 'userId',
+                            select: 'userName name profilePic'
+                        },
+                        select: 'bodyText likes responses'
+                    },
+                    {
+                        path: 'userId',
+                        select: 'userName name profilePic'
+                    }
+                ],
+                select: 'imgpost caption userId taggedpeople likes commentsIds location createdAt updatedAt'
+            })
+            .populate({
+                path: 'comments',
+                populate: {
+                    path: 'postId',
+                    select: 'imgpost caption userId taggedpeople likes commentsIds location'
+                },
+                select: 'bodyText likes responses createdAt updatedAt'
+            })
+            .populate({
+                path: 'followers following',
+                select: 'userName name profilePic'
+            });
             res.send(user)
         } catch (error) {
             console.error(error);
